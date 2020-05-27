@@ -6,55 +6,11 @@ using Minsk.CodeAnalysis.Syntax;
 
 namespace Minsk.CodeAnalysis.Binding
 {
-    // TODO: Order methods from outer to inner
     internal static class BoundNodeFactory
     {
-        public static BoundNopStatement Nop(SyntaxNode syntax)
-        {
-            return new BoundNopStatement(syntax);
-        }
-
-        public static BoundLabelStatement Label(SyntaxNode syntax, BoundLabel label)
-        {
-            return new BoundLabelStatement(syntax, label);
-        }
-
-        public static BoundLiteralExpression Literal(SyntaxNode syntax, object literal)
-        {
-            Debug.Assert(literal is string || literal is bool || literal is int);
-
-            return new BoundLiteralExpression(syntax, literal);
-        }
-
         public static BoundBlockStatement Block(SyntaxNode syntax, params BoundStatement[] statements)
         {
             return new BoundBlockStatement(syntax, ImmutableArray.Create(statements));
-        }
-
-        public static BoundGotoStatement Goto(SyntaxNode syntax, BoundLabelStatement label)
-        {
-            return new BoundGotoStatement(syntax, label.Label);
-        }
-
-        public static BoundGotoStatement Goto(SyntaxNode syntax, BoundLabel label)
-        {
-            return new BoundGotoStatement(syntax, label);
-        }
-
-        public static BoundConditionalGotoStatement GotoIf(SyntaxNode syntax, BoundLabelStatement label, BoundExpression condition, bool jumpIfTrue)
-        {
-            return new BoundConditionalGotoStatement(syntax, label.Label, condition, jumpIfTrue);
-        }
-
-        public static BoundConditionalGotoStatement GotoTrue(SyntaxNode syntax, BoundLabelStatement label, BoundExpression condition)
-            => GotoIf(syntax, label, condition, jumpIfTrue: true);
-
-        public static BoundConditionalGotoStatement GotoFalse(SyntaxNode syntax, BoundLabelStatement label, BoundExpression condition)
-            => GotoIf(syntax, label, condition, jumpIfTrue: false);
-
-        public static BoundVariableExpression Variable(SyntaxNode syntax, BoundVariableDeclaration variable)
-        {
-            return new BoundVariableExpression(syntax, variable.Variable);
         }
 
         public static BoundVariableDeclaration VariableDeclaration(SyntaxNode syntax, VariableSymbol symbol, BoundExpression initializer)
@@ -74,6 +30,37 @@ namespace Minsk.CodeAnalysis.Binding
             return new BoundVariableDeclaration(syntax, local, initializer);
         }
 
+        public static BoundWhileStatement While(SyntaxNode syntax, BoundExpression condition, BoundStatement body, BoundLabel breakLabel, BoundLabel continueLabel)
+        {
+            return new BoundWhileStatement(syntax, condition, body, breakLabel, continueLabel);
+        }
+
+        public static BoundGotoStatement Goto(SyntaxNode syntax, BoundLabelStatement label)
+        {
+            return new BoundGotoStatement(syntax, label.Label);
+        }
+
+        public static BoundGotoStatement Goto(SyntaxNode syntax, BoundLabel label)
+        {
+            return new BoundGotoStatement(syntax, label);
+        }
+
+        public static BoundConditionalGotoStatement GotoTrue(SyntaxNode syntax, BoundLabelStatement label, BoundExpression condition)
+            => new BoundConditionalGotoStatement(syntax, label.Label, condition, jumpIfTrue: true);
+
+        public static BoundConditionalGotoStatement GotoFalse(SyntaxNode syntax, BoundLabelStatement label, BoundExpression condition)
+            => new BoundConditionalGotoStatement(syntax, label.Label, condition, jumpIfTrue: false);
+
+        public static BoundLabelStatement Label(SyntaxNode syntax, BoundLabel label)
+        {
+            return new BoundLabelStatement(syntax, label);
+        }
+
+        public static BoundNopStatement Nop(SyntaxNode syntax)
+        {
+            return new BoundNopStatement(syntax);
+        }
+
         public static BoundBinaryExpression Binary(SyntaxNode syntax, BoundExpression left, SyntaxKind kind, BoundExpression right)
         {
             var op = BoundBinaryOperator.Bind(kind, left.Type, right.Type)!;
@@ -85,11 +72,6 @@ namespace Minsk.CodeAnalysis.Binding
 
         public static BoundBinaryExpression LessOrEqual(SyntaxNode syntax, BoundExpression left, BoundExpression right)
             => Binary(syntax, left, SyntaxKind.LessOrEqualsToken, right);
-
-        public static BoundWhileStatement While(SyntaxNode syntax, BoundExpression condition, BoundStatement body, BoundLabel breakLabel, BoundLabel continueLabel)
-        {
-            return new BoundWhileStatement(syntax, condition, body, breakLabel, continueLabel);
-        }
 
         public static BoundExpressionStatement Increment(SyntaxNode syntax, BoundVariableExpression variable)
         {
@@ -105,6 +87,18 @@ namespace Minsk.CodeAnalysis.Binding
             var op = BoundUnaryOperator.Bind(SyntaxKind.BangToken, TypeSymbol.Bool);
             Debug.Assert(op != null);
             return new BoundUnaryExpression(syntax, op, condition);
+        }
+
+        public static BoundVariableExpression Variable(SyntaxNode syntax, BoundVariableDeclaration variable)
+        {
+            return new BoundVariableExpression(syntax, variable.Variable);
+        }
+
+        public static BoundLiteralExpression Literal(SyntaxNode syntax, object literal)
+        {
+            Debug.Assert(literal is string || literal is bool || literal is int);
+
+            return new BoundLiteralExpression(syntax, literal);
         }
     }
 }
